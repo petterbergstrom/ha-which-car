@@ -64,6 +64,7 @@ class WhichCarCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._exr_day: date | None = None
         self._diesel_at: datetime | None = None
         self._dirty = False
+        self._price_error: str | None = None
 
     async def async_load(self) -> None:
         """Load cached values from disk."""
@@ -112,8 +113,10 @@ class WhichCarCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         if today not in self._slots:
             try:
                 self._slots[today] = await self._fetch_prices(today)
+                self._price_error = None
             except HomeAssistantError as err:
-                _LOGGER.debug("Today's prices unavailable: %s", err)
+                self._price_error = str(err) or repr(err)
+                _LOGGER.debug("Today's prices unavailable: %s", self._price_error)
         if tomorrow not in self._slots and now.hour >= 13:
             try:
                 self._slots[tomorrow] = await self._fetch_prices(tomorrow)
@@ -286,7 +289,9 @@ class WhichCarCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
         slots, month_avg = await self._update_electricity(now)
         if not slots and month_avg is None:
-            raise UpdateFailed("No electricity prices from the Nord Pool integration yet")
+            raise UpdateFailed(
+                f"No electricity prices from the Nord Pool integration yet: {self._price_error}"
+            )
         exr = await self._update_exchange_rate(now, slots)
 
         diesel = await self._update_diesel(now)
