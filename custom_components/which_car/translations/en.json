@@ -1,0 +1,88 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Which car today",
+        "description": "Choose where prices and weather come from. Fees and car figures are set afterwards under Configure.",
+        "data": {
+          "nordpool_entry": "Nord Pool integration",
+          "area": "Price area",
+          "weather_entity": "Weather entity",
+          "battery_entity": "EX40 battery charge level"
+        },
+        "data_description": {
+          "weather_entity": "Pick your Met.no entity. Its hourly forecast is used for the departure time.",
+          "battery_entity": "Optional. The battery charge level sensor from the Volvo integration. Without it, the charge level from the settings is used."
+        }
+      }
+    },
+    "abort": {
+      "nordpool_missing": "Set up the Nord Pool integration first, then add this one again.",
+      "already_configured": "Which car today is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Fees, charging and cars",
+        "data": {
+          "price_plan": "Electricity contract",
+          "markup_ore": "Supplier mark-up incl. certificates, excl. VAT",
+          "grid_ore": "Grid transfer fee, incl. VAT",
+          "tax_ore": "Energy tax, incl. VAT",
+          "vat_pct": "VAT",
+          "fast_price": "Fast charging on the road",
+          "charger_kw": "Home charger power",
+          "charge_loss_pct": "Charging losses",
+          "ev_short": "EX40, mixed roads at 20 °C",
+          "ev_long": "EX40, motorway at 20 °C",
+          "battery_kwh": "EX40 usable battery",
+          "start_pct": "EX40 charge level when leaving",
+          "reserve_pct": "EX40 lowest charge level you accept",
+          "diesel_short": "Passat, mixed roads, warm engine",
+          "diesel_long": "Passat, motorway, warm engine"
+        },
+        "data_description": {
+          "price_plan": "Monthly price is billed at the month's average, so the hour you charge does not matter. Quarter-hour price follows the spot price.",
+          "start_pct": "Ignored when a battery sensor is connected."
+        }
+      }
+    }
+  },
+  "selector": {
+    "price_plan": {
+      "options": {
+        "monthly_average": "Monthly variable price (Rörligt elpris)",
+        "spot_cheapest_hours": "Quarter-hour price, charging in the cheapest hours left",
+        "spot_day_average": "Quarter-hour price, charging at any time of day"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "short_recommendation": {
+        "name": "Short trip recommendation",
+        "state": { "ex40": "Take the EX40", "passat": "Take the Passat", "either": "Either car" }
+      },
+      "short_ex40_cost": { "name": "Short trip EX40 cost" },
+      "short_passat_cost": { "name": "Short trip Passat cost" },
+      "short_saving": { "name": "Short trip saving" },
+      "short_breakeven_diesel": { "name": "Short trip break-even diesel price" },
+      "long_recommendation": {
+        "name": "Long trip recommendation",
+        "state": { "ex40": "Take the EX40", "passat": "Take the Passat", "either": "Either car" }
+      },
+      "long_ex40_cost": { "name": "Long trip EX40 cost" },
+      "long_passat_cost": { "name": "Long trip Passat cost" },
+      "long_saving": { "name": "Long trip saving" },
+      "long_breakeven_diesel": { "name": "Long trip break-even diesel price" },
+      "diesel_price": { "name": "Diesel price" },
+      "home_electricity_price": { "name": "Home electricity price" }
+    },
+    "number": {
+      "short_km": { "name": "Short trip distance" },
+      "long_km": { "name": "Long trip distance" },
+      "leave_in_h": { "name": "Leaving in" }
+    }
+  }
+}

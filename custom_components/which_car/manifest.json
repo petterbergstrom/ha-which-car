@@ -1,0 +1,13 @@
+{
+  "domain": "which_car",
+  "name": "Which Car Today",
+  "after_dependencies": ["nordpool", "weather", "met"],
+  "codeowners": ["@petterbergstrom"],
+  "config_flow": true,
+  "documentation": "https://github.com/petterbergstrom/ha-which-car",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/petterbergstrom/ha-which-car/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
