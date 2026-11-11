@@ -2,6 +2,7 @@
   "domain": "which_car",
   "name": "Which Car Today",
   "after_dependencies": ["nordpool", "weather", "met"],
+  "categories": ["vehicles_transport.cars_evs", "energy.energy_prices"],
   "codeowners": ["@petterbergstrom"],
   "config_flow": true,
   "documentation": "https://github.com/petterbergstrom/ha-which-car",
