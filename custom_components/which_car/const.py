@@ -31,6 +31,9 @@ OPT_START_PCT = "start_pct"
 OPT_RESERVE_PCT = "reserve_pct"
 OPT_DIESEL_SHORT = "diesel_short"
 OPT_DIESEL_LONG = "diesel_long"
+# Optional entities that override a fixed setting. Kept out of DEFAULTS and Settings.
+OPT_FAST_PRICE_ENTITY = "fast_price_entity"
+OPT_CAPACITY_ENTITY = "capacity_entity"
 
 # Fee defaults follow Lerum Energi, 2026:
 #   grid transfer fee (enkeltariff) 31.16 ore/kWh excl. VAT = 38.95 incl. VAT

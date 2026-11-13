@@ -37,7 +37,9 @@ def _trip_attrs(kind: str) -> Callable[[dict[str, Any]], dict[str, Any]]:
             "wind_ms": round(w.wind_ms, 1),
             "ex40_kwh": round(r.ev_kwh, 1),
             "ex40_kwh_per_100km": round(r.ev_kwh / r.km * 100, 1),
+            "ex40_from_battery_kwh": round(r.ev_kwh - r.ev_fast_kwh, 1),
             "ex40_fast_charge_kwh": round(r.ev_fast_kwh, 1),
+            "ex40_fast_charge_cost_sek": round(r.ev_fast_kwh * d["fast_price"], 2),
             "ex40_weather_effect_pct": round(r.ev_weather_pct),
             "passat_litres": round(r.litres, 1),
             "passat_l_per_100km": round(r.litres / r.km * 100, 1),
@@ -127,7 +129,18 @@ SENSORS: list[WhichCarSensorDescription] = [
             "fees_and_taxes_sek_per_kwh": round(d["fees_only"], 4),
             "tomorrow_prices_available": d["tomorrow_prices"],
             "ex40_battery_pct": d["battery_pct"],
+            "ex40_battery_capacity_kwh": round(d["battery_kwh"], 1),
+            "ex40_battery_capacity_source": d["battery_kwh_source"],
         },
+    ),
+    WhichCarSensorDescription(
+        key="public_charging_price",
+        translation_key="public_charging_price",
+        native_unit_of_measurement="SEK/kWh",
+        suggested_display_precision=2,
+        icon="mdi:ev-station",
+        value_fn=lambda d: d["fast_price"],
+        attrs_fn=lambda d: {"source": d["fast_price_source"]},
     ),
 ]
 

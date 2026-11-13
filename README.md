@@ -33,6 +33,7 @@ Shared:
 
 - **Diesel price** in SEK/L, with the bulletin week as an attribute.
 - **Home electricity price** in SEK/kWh, all fees included.
+- **Public charging price** in SEK/kWh, the fast charging price the trip costs use.
 - **Short trip distance**, **Long trip distance** and **Leaving in** (hours from now), which you can change from a dashboard.
 
 Values refresh every 15 minutes and whenever you change a trip setting.
@@ -48,11 +49,13 @@ The fee defaults follow Lerum Energi's published 2026 prices.
 | Grid transfer fee, incl. VAT | 38.95 öre/kWh | Lerum Energi single tariff |
 | Energy tax, incl. VAT | 45.0 öre/kWh | 36.0 öre excl. VAT in 2026 |
 | VAT | 25% | |
-| Fast charging on the road | 5.50 SEK/kWh | Estimate |
+| Fast charging on the road | 5.50 SEK/kWh | Estimate. Replaced by the fast charging price sensor, if you pick one |
+| Fast charging price from a sensor | none | Optional. Any sensor with a price in SEK/kWh or öre/kWh |
 | Home charger power | 11 kW | |
 | Charging losses | 10% | |
 | EX40, mixed roads / motorway at 20 °C | 17 / 21 kWh/100 km | Estimate |
-| EX40 usable battery | 79 kWh | The larger battery pack |
+| EX40 usable battery | 79 kWh | The larger battery pack. Replaced by the battery capacity sensor, if you pick one |
+| EX40 battery capacity from a sensor | none | Optional. For example the Volvo integration's battery capacity sensor |
 | EX40 charge level when leaving / lowest accepted | 90% / 10% | |
 | Passat, mixed roads / motorway, warm engine | 6.0 / 5.4 L/100 km | Estimate |
 
@@ -65,7 +68,7 @@ If you have "Rörligt kvartspris" instead, choose one of the quarter-hour option
 ## How the cost is calculated
 
 - Electricity at home: (spot + mark-up) × (1 + VAT) + energy tax + grid fee, divided by charging efficiency.
-- On a long trip, whatever the battery cannot cover between the charge level when leaving and the lowest level you accept is priced as fast charging.
+- Whatever the battery cannot cover between the charge level when leaving and the lowest level you accept is priced as fast charging. The trip recommendation shows that energy and its cost (`ex40_fast_charge_kwh`, `ex40_fast_charge_cost_sek`), and the **Public charging price** sensor shows the price used and whether it came from your sensor or the fixed setting.
 - Diesel: litres × the Swedish average pump price.
 - Cold adds a one-off amount per trip (cabin and battery warm-up, or a cold engine) and a steady amount per kilometre (cabin heat, denser air, winter tyres). Rain, snow and wind above 8 m/s add a few percent.
 
