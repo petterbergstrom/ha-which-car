@@ -37,6 +37,7 @@ All code lives in `custom_components/which_car/`.
 ### Invariants to preserve
 
 - `coordinator.settings` builds `Settings` by taking `Settings.__dataclass_fields__` from `{**DEFAULTS, **entry.options}`. Every `Settings` field must have a matching key in `DEFAULTS` (and options keys must use the same names). Adding a setting means updating `model.Settings`, `const.DEFAULTS`/`OPT_*`, the options flow schema, `translations/en.json` and the README table.
+- Options that pick an entity (`OPT_FAST_PRICE_ENTITY`, `OPT_CAPACITY_ENTITY`) are not `Settings` fields and are not in `DEFAULTS`. The coordinator reads them (`_fast_price`, `_battery_capacity`) and passes the effective values to the model with `dataclasses.replace(settings, ...)`, falling back to the fixed setting when the entity has no usable value.
 - `PLAN_*` constants are duplicated in `model.py` and `const.py` (to keep the model HA-free); keep the values identical.
 - Entity names come from `translation_key` → `translations/en.json`; new entities need translation entries.
 
