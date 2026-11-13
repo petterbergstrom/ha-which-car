@@ -4,8 +4,10 @@ from datetime import datetime, timedelta
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.util import dt as dt_util
 
 from custom_components.which_car.const import DEFAULTS, DIESEL_URL, DOMAIN, OPT_PRICE_PLAN, PLAN_CHEAPEST
@@ -137,3 +139,17 @@ async def test_config_flow(hass: HomeAssistant, aioclient_mock) -> None:
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
     assert entry.options["markup_ore"] == 5.0
+
+
+async def test_nordpool_error_is_shown(hass: HomeAssistant, aioclient_mock) -> None:
+    fake_sources(hass, aioclient_mock, [])
+
+    async def failing(call: ServiceCall):
+        raise ServiceValidationError("Nord Pool entry np1 is not loaded")
+
+    hass.services.async_register("nordpool", "get_prices_for_date", failing, supports_response=SupportsResponse.ONLY)
+    entry = MockConfigEntry(domain=DOMAIN, data=DATA, options=dict(DEFAULTS))
+    entry.add_to_hass(hass)
+    assert not await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.state is ConfigEntryState.SETUP_RETRY
+    assert "np1 is not loaded" in entry.reason
