@@ -25,6 +25,7 @@ All code lives in `custom_components/which_car/`.
 - **`coordinator.py`** (`WhichCarCoordinator`, 15-minute `DataUpdateCoordinator`) gathers inputs and calls `calc_trip` for each trip type:
   - Electricity: calls the `nordpool.get_prices_for_date` service (not an API directly). It needs the built-in Nord Pool integration; the HACS "Nordpool" custom component uses the same `nordpool` domain but has no such action. The Nord Pool config entry ID is stored in `entry.data` and there is no reconfigure flow, so if the user replaces their Nord Pool entry, Which Car Today has to be removed and re-added. Tomorrow's prices are fetched only after 13:00. For the monthly-average price plan it backfills per-day averages for the current month, at most `BACKFILL_PER_UPDATE` days per update.
   - EUR→SEK rate is derived by fetching the same Nord Pool day in both SEK and EUR; falls back to `FALLBACK_EUR_SEK`.
+  - Public fast-charging price: a fixed setting, optionally overridden by a user-picked sensor. NOBIL (Sweden's charger register) was checked in Nov 2026 and has no prices: its static data only lists payment methods and its real-time stream (Enova, `api.data.enova.no/nobil/real-time`) only charger status.
   - Diesel: HTTP fetch of `DIESEL_URL` (fuel-prices.eu, EUR/L), refreshed every 6 h; last known value is kept on failure.
   - Weather: `weather.get_forecasts` (hourly), averaged over the trip window (duration from `SPEED[kind]`), with unit conversion; falls back to current state attributes.
   - Persistent cache in a `Store` (`which_car.<entry_id>`): daily spot averages, exchange rate, diesel price. Written only when `_dirty` is set.
@@ -37,7 +38,7 @@ All code lives in `custom_components/which_car/`.
 ### Invariants to preserve
 
 - `coordinator.settings` builds `Settings` by taking `Settings.__dataclass_fields__` from `{**DEFAULTS, **entry.options}`. Every `Settings` field must have a matching key in `DEFAULTS` (and options keys must use the same names). Adding a setting means updating `model.Settings`, `const.DEFAULTS`/`OPT_*`, the options flow schema, `translations/en.json` and the README table.
-- Options that pick an entity (`OPT_FAST_PRICE_ENTITY`, `OPT_CAPACITY_ENTITY`) are not `Settings` fields and are not in `DEFAULTS`. The coordinator reads them (`_fast_price`, `_battery_capacity`) and passes the effective values to the model with `dataclasses.replace(settings, ...)`, falling back to the fixed setting when the entity has no usable value.
+- Options that pick an entity (`OPT_FAST_PRICE_ENTITY`) are not `Settings` fields and are not in `DEFAULTS`. The coordinator reads them (`_fast_price`) and passes the effective values to the model with `dataclasses.replace(settings, ...)`, falling back to the fixed setting when the entity has no usable value.
 - `PLAN_*` constants are duplicated in `model.py` and `const.py` (to keep the model HA-free); keep the values identical.
 - Entity names come from `translation_key` → `translations/en.json`; new entities need translation entries.
 

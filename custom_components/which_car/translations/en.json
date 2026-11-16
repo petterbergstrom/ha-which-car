@@ -38,7 +38,6 @@
           "ev_short": "EX40, mixed roads at 20 °C",
           "ev_long": "EX40, motorway at 20 °C",
           "battery_kwh": "EX40 usable battery",
-          "capacity_entity": "EX40 battery capacity from a sensor",
           "start_pct": "EX40 charge level when leaving",
           "reserve_pct": "EX40 lowest charge level you accept",
           "diesel_short": "Passat, mixed roads, warm engine",
@@ -47,8 +46,7 @@
         "data_description": {
           "price_plan": "Monthly price is billed at the month's average, so the hour you charge does not matter. Quarter-hour price follows the spot price.",
           "start_pct": "Ignored when a battery sensor is connected.",
-          "fast_price_entity": "Optional. A sensor with a price in SEK/kWh (or öre/kWh). When it has a valid value, it replaces the fixed fast charging price.",
-          "capacity_entity": "Optional. The battery capacity sensor from the Volvo integration. When it has a valid value, it replaces the usable battery above."
+          "fast_price_entity": "Optional. A sensor with a price in SEK/kWh (or öre/kWh). When it has a valid value, it replaces the fixed fast charging price."
         }
       }
     }

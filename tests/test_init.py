@@ -140,17 +140,17 @@ async def test_config_flow(hass: HomeAssistant, aioclient_mock) -> None:
     await hass.async_block_till_done()
     assert entry.options["markup_ore"] == 5.0
 
-    # The optional entities can be set and cleared again.
+    # The optional price entity can be set and cleared again.
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(
-        result["flow_id"], {**DEFAULTS, "capacity_entity": "sensor.capacity"}
+        result["flow_id"], {**DEFAULTS, "fast_price_entity": "sensor.fast_price"}
     )
     await hass.async_block_till_done()
-    assert entry.options["capacity_entity"] == "sensor.capacity"
+    assert entry.options["fast_price_entity"] == "sensor.fast_price"
     result = await hass.config_entries.options.async_init(entry.entry_id)
     result = await hass.config_entries.options.async_configure(result["flow_id"], dict(DEFAULTS))
     await hass.async_block_till_done()
-    assert "capacity_entity" not in entry.options
+    assert "fast_price_entity" not in entry.options
 
 
 async def test_nordpool_error_is_shown(hass: HomeAssistant, aioclient_mock) -> None:
@@ -167,29 +167,21 @@ async def test_nordpool_error_is_shown(hass: HomeAssistant, aioclient_mock) -> N
     assert "np1 is not loaded" in entry.reason
 
 
-async def test_price_and_capacity_from_entities(hass: HomeAssistant, aioclient_mock) -> None:
+async def test_fast_price_from_entity(hass: HomeAssistant, aioclient_mock) -> None:
     hass.states.async_set("sensor.fast_price", "650", {"unit_of_measurement": "öre/kWh"})
-    hass.states.async_set("sensor.capacity", "40", {"unit_of_measurement": "kWh"})
-    options = {"fast_price_entity": "sensor.fast_price", "capacity_entity": "sensor.capacity"}
-    entry, _ = await setup(hass, aioclient_mock, options=options)
+    entry, _ = await setup(hass, aioclient_mock, options={"fast_price_entity": "sensor.fast_price"})
 
     price = hass.states.get("sensor.which_car_today_public_charging_price")
     assert float(price.state) == 6.5
     assert price.attributes["source"] == "entity"
-    home = hass.states.get("sensor.which_car_today_home_electricity_price")
-    assert home.attributes["ex40_battery_capacity_kwh"] == 40.0
-    assert home.attributes["ex40_battery_capacity_source"] == "entity"
     long = hass.states.get("sensor.which_car_today_long_trip_recommendation").attributes
-    assert long["ex40_from_battery_kwh"] == 32.0  # 40 kWh between 90% and 10%
+    assert long["ex40_from_battery_kwh"] == 63.2  # 79 kWh between 90% and 10%
     assert abs(long["ex40_fast_charge_cost_sek"] - long["ex40_fast_charge_kwh"] * 6.5) < 0.5
 
-    # Unusable entity values fall back to the fixed settings.
+    # An unusable entity value falls back to the fixed setting.
     hass.states.async_set("sensor.fast_price", "unavailable")
-    hass.states.async_set("sensor.capacity", "0.5", {"unit_of_measurement": "kWh"})
     await entry.runtime_data.async_refresh()
     await hass.async_block_till_done()
     price = hass.states.get("sensor.which_car_today_public_charging_price")
     assert float(price.state) == DEFAULTS["fast_price"]
     assert price.attributes["source"] == "fixed"
-    home = hass.states.get("sensor.which_car_today_home_electricity_price")
-    assert home.attributes["ex40_battery_capacity_kwh"] == DEFAULTS["battery_kwh"]

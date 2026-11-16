@@ -19,7 +19,6 @@ from .const import (
     DEFAULTS,
     DOMAIN,
     OPT_BATTERY_KWH,
-    OPT_CAPACITY_ENTITY,
     OPT_CHARGE_LOSS,
     OPT_CHARGER_KW,
     OPT_DIESEL_LONG,
@@ -68,10 +67,6 @@ NUMBER_FIELDS: dict[str, sel.NumberSelector] = {
 # Optional entities shown right after the fixed setting they replace.
 ENTITY_FIELDS: dict[str, tuple[str, sel.EntitySelector]] = {
     OPT_FAST_PRICE: (OPT_FAST_PRICE_ENTITY, sel.EntitySelector(sel.EntitySelectorConfig(domain="sensor"))),
-    OPT_BATTERY_KWH: (
-        OPT_CAPACITY_ENTITY,
-        sel.EntitySelector(sel.EntitySelectorConfig(domain="sensor", device_class="energy_storage")),
-    ),
 }
 
 

@@ -54,8 +54,7 @@ The fee defaults follow Lerum Energi's published 2026 prices.
 | Home charger power | 11 kW | |
 | Charging losses | 10% | |
 | EX40, mixed roads / motorway at 20 °C | 17 / 21 kWh/100 km | Estimate |
-| EX40 usable battery | 79 kWh | The larger battery pack. Replaced by the battery capacity sensor, if you pick one |
-| EX40 battery capacity from a sensor | none | Optional. For example the Volvo integration's battery capacity sensor |
+| EX40 usable battery | 79 kWh | The larger battery pack |
 | EX40 charge level when leaving / lowest accepted | 90% / 10% | |
 | Passat, mixed roads / motorway, warm engine | 6.0 / 5.4 L/100 km | Estimate |
 

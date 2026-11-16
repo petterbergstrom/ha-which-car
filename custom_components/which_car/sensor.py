@@ -129,8 +129,6 @@ SENSORS: list[WhichCarSensorDescription] = [
             "fees_and_taxes_sek_per_kwh": round(d["fees_only"], 4),
             "tomorrow_prices_available": d["tomorrow_prices"],
             "ex40_battery_pct": d["battery_pct"],
-            "ex40_battery_capacity_kwh": round(d["battery_kwh"], 1),
-            "ex40_battery_capacity_source": d["battery_kwh_source"],
         },
     ),
     WhichCarSensorDescription(
