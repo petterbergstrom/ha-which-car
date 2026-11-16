@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import replace
 from datetime import date, datetime, timedelta
 import logging
 import math
@@ -27,6 +28,7 @@ from .const import (
     DIESEL_URL,
     DOMAIN,
     FALLBACK_EUR_SEK,
+    OPT_FAST_PRICE_ENTITY,
     OPT_PRICE_PLAN,
     PLAN_MONTHLY,
     TRIP_DEFAULTS,
@@ -273,6 +275,29 @@ class WhichCarCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except (AttributeError, ValueError):
             return None
 
+    def _entity_number(self, option: str) -> tuple[float, str] | None:
+        """Numeric state and unit of the entity picked for an option, if usable."""
+        entity_id = self.config_entry.options.get(option)
+        state = self.hass.states.get(entity_id) if entity_id else None
+        if state is None:
+            return None
+        try:
+            value = float(state.state)
+        except ValueError:
+            return None
+        return value, str(state.attributes.get("unit_of_measurement") or "")
+
+    def _fast_price(self, settings: Settings) -> tuple[float, str]:
+        """Public fast-charging price in SEK/kWh and where it came from."""
+        found = self._entity_number(OPT_FAST_PRICE_ENTITY)
+        if found is not None:
+            price, unit = found
+            if unit.lower().startswith("öre"):
+                price /= 100
+            if 0 < price <= 20:
+                return price, "entity"
+        return settings.fast_price, "fixed"
+
     # ---------- update ----------
 
     async def _async_update_data(self) -> dict[str, Any]:
@@ -286,6 +311,8 @@ class WhichCarCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     async def _compute(self) -> dict[str, Any]:
         now = dt_util.now()
         settings = self.settings
+        fast_price, fast_price_source = self._fast_price(settings)
+        settings = replace(settings, fast_price=fast_price)
 
         slots, month_avg = await self._update_electricity(now)
         if not slots and month_avg is None:
@@ -311,6 +338,8 @@ class WhichCarCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             "diesel_eur": diesel["eur"],
             "eur_sek": exr,
             "battery_pct": battery,
+            "fast_price": fast_price,
+            "fast_price_source": fast_price_source,
             "month_avg_spot": month_avg,
             "price_plan": self.config_entry.options.get(OPT_PRICE_PLAN, PLAN_MONTHLY),
             "tomorrow_prices": (now.date() + timedelta(days=1)) in self._slots,

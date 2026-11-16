@@ -26,6 +26,7 @@ from .const import (
     OPT_EV_LONG,
     OPT_EV_SHORT,
     OPT_FAST_PRICE,
+    OPT_FAST_PRICE_ENTITY,
     OPT_GRID,
     OPT_MARKUP,
     OPT_PRICE_PLAN,
@@ -60,6 +61,12 @@ NUMBER_FIELDS: dict[str, sel.NumberSelector] = {
     OPT_RESERVE_PCT: _num(0, 50, 1, "%"),
     OPT_DIESEL_SHORT: _num(3, 15, 0.1, "L/100 km"),
     OPT_DIESEL_LONG: _num(3, 15, 0.1, "L/100 km"),
+}
+
+
+# Optional entities shown right after the fixed setting they replace.
+ENTITY_FIELDS: dict[str, tuple[str, sel.EntitySelector]] = {
+    OPT_FAST_PRICE: (OPT_FAST_PRICE_ENTITY, sel.EntitySelector(sel.EntitySelectorConfig(domain="sensor"))),
 }
 
 
@@ -118,4 +125,8 @@ class WhichCarOptionsFlow(OptionsFlow):
         }
         for key, field in NUMBER_FIELDS.items():
             fields[vol.Required(key, default=current[key])] = field
+            if key in ENTITY_FIELDS:
+                entity_key, entity_field = ENTITY_FIELDS[key]
+                suggested = {"suggested_value": current.get(entity_key)}
+                fields[vol.Optional(entity_key, description=suggested)] = entity_field
         return self.async_show_form(step_id="init", data_schema=vol.Schema(fields))

@@ -32,6 +32,7 @@
           "tax_ore": "Energy tax, incl. VAT",
           "vat_pct": "VAT",
           "fast_price": "Fast charging on the road",
+          "fast_price_entity": "Fast charging price from a sensor",
           "charger_kw": "Home charger power",
           "charge_loss_pct": "Charging losses",
           "ev_short": "EX40, mixed roads at 20 °C",
@@ -44,7 +45,8 @@
         },
         "data_description": {
           "price_plan": "Monthly price is billed at the month's average, so the hour you charge does not matter. Quarter-hour price follows the spot price.",
-          "start_pct": "Ignored when a battery sensor is connected."
+          "start_pct": "Ignored when a battery sensor is connected.",
+          "fast_price_entity": "Optional. A sensor with a price in SEK/kWh (or öre/kWh). When it has a valid value, it replaces the fixed fast charging price."
         }
       }
     }
@@ -77,7 +79,8 @@
       "long_saving": { "name": "Long trip saving" },
       "long_breakeven_diesel": { "name": "Long trip break-even diesel price" },
       "diesel_price": { "name": "Diesel price" },
-      "home_electricity_price": { "name": "Home electricity price" }
+      "home_electricity_price": { "name": "Home electricity price" },
+      "public_charging_price": { "name": "Public charging price" }
     },
     "number": {
       "short_km": { "name": "Short trip distance" },
