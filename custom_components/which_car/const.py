@@ -62,5 +62,5 @@ TRIP_LONG = "long"
 TRIP_DEFAULTS = {"short_km": 20.0, "long_km": 300.0, "leave_in_h": 0.0}
 
 DIESEL_URL = "https://www.fuel-prices.eu/lang/api/country-history.php?cc=SE"
-USER_AGENT = "ha-which-car/0.3 (+https://github.com/petterbergstrom/ha-which-car)"
+USER_AGENT = "ha-which-car/0.4 (+https://github.com/petterbergstrom/ha-which-car)"
 FALLBACK_EUR_SEK = 11.0

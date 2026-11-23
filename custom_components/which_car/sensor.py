@@ -58,6 +58,16 @@ def _trip_attrs(kind: str) -> Callable[[dict[str, Any]], dict[str, Any]]:
     return attrs
 
 
+def _per_km(kind: str, field: str) -> Callable[[dict[str, Any]], dict[str, Any]]:
+    """Cost per km (SEK/km) next to a trip total, for dashboards."""
+
+    def attrs(d: dict[str, Any]) -> dict[str, Any]:
+        r = d[kind]
+        return {"distance_km": r.km, "per_km": round(getattr(r, field) / r.km, 2) if r.km else None}
+
+    return attrs
+
+
 def _trip_sensors(kind: str) -> list[WhichCarSensorDescription]:
     return [
         WhichCarSensorDescription(
@@ -75,6 +85,7 @@ def _trip_sensors(kind: str) -> list[WhichCarSensorDescription]:
             native_unit_of_measurement="SEK",
             suggested_display_precision=1,
             value_fn=lambda d: d[kind].ev_cost,
+            attrs_fn=_per_km(kind, "ev_cost"),
         ),
         WhichCarSensorDescription(
             key=f"{kind}_passat_cost",
@@ -83,6 +94,7 @@ def _trip_sensors(kind: str) -> list[WhichCarSensorDescription]:
             native_unit_of_measurement="SEK",
             suggested_display_precision=1,
             value_fn=lambda d: d[kind].diesel_cost,
+            attrs_fn=_per_km(kind, "diesel_cost"),
         ),
         WhichCarSensorDescription(
             key=f"{kind}_saving",
@@ -91,6 +103,7 @@ def _trip_sensors(kind: str) -> list[WhichCarSensorDescription]:
             native_unit_of_measurement="SEK",
             suggested_display_precision=1,
             value_fn=lambda d: d[kind].saving,
+            attrs_fn=_per_km(kind, "saving"),
         ),
         WhichCarSensorDescription(
             key=f"{kind}_breakeven_diesel",
