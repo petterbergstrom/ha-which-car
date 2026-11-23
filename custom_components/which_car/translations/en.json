@@ -14,11 +14,27 @@
           "weather_entity": "Pick your Met.no entity. Its hourly forecast is used for the departure time.",
           "battery_entity": "Optional. The battery charge level sensor from the Volvo integration. Without it, the charge level from the settings is used."
         }
+      },
+      "reconfigure": {
+        "title": "Which car today sources",
+        "description": "Change where prices and weather come from. Fees and car figures stay as they are.",
+        "data": {
+          "nordpool_entry": "Nord Pool integration",
+          "area": "Price area",
+          "weather_entity": "Weather entity",
+          "battery_entity": "EX40 battery charge level"
+        },
+        "data_description": {
+          "weather_entity": "Pick your Met.no entity. Its hourly forecast is used for the departure time.",
+          "battery_entity": "Optional. The battery charge level sensor from the Volvo integration. Without it, the charge level from the settings is used."
+        }
       }
     },
     "abort": {
       "nordpool_missing": "Set up the Nord Pool integration first, then add this one again.",
-      "already_configured": "Which car today is already set up."
+      "already_configured": "Which car today is already set up.",
+      "single_instance_allowed": "Which car today is already set up.",
+      "reconfigure_successful": "Which car today now uses the new sources."
     }
   },
   "options": {

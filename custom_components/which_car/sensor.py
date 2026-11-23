@@ -6,16 +6,24 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity, SensorEntityDescription
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorEntityDescription,
+    SensorStateClass,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import WhichCarConfigEntry
 from .const import TRIP_LONG, TRIP_SHORT
 from .coordinator import WhichCarCoordinator
 from .entity import device_info
 from .model import RECOMMEND_DIESEL, RECOMMEND_EITHER, RECOMMEND_EV
+
+# The coordinator does all fetching, so entity updates need no limit.
+PARALLEL_UPDATES = 0
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -57,40 +65,39 @@ def _trip_sensors(kind: str) -> list[WhichCarSensorDescription]:
             translation_key=f"{kind}_recommendation",
             device_class=SensorDeviceClass.ENUM,
             options=[RECOMMEND_EV, RECOMMEND_DIESEL, RECOMMEND_EITHER],
-            icon="mdi:car-select",
             value_fn=lambda d: d[kind].recommendation,
             attrs_fn=_trip_attrs(kind),
         ),
         WhichCarSensorDescription(
             key=f"{kind}_ex40_cost",
             translation_key=f"{kind}_ex40_cost",
+            device_class=SensorDeviceClass.MONETARY,
             native_unit_of_measurement="SEK",
             suggested_display_precision=1,
-            icon="mdi:car-electric",
             value_fn=lambda d: d[kind].ev_cost,
         ),
         WhichCarSensorDescription(
             key=f"{kind}_passat_cost",
             translation_key=f"{kind}_passat_cost",
+            device_class=SensorDeviceClass.MONETARY,
             native_unit_of_measurement="SEK",
             suggested_display_precision=1,
-            icon="mdi:gas-station",
             value_fn=lambda d: d[kind].diesel_cost,
         ),
         WhichCarSensorDescription(
             key=f"{kind}_saving",
             translation_key=f"{kind}_saving",
+            device_class=SensorDeviceClass.MONETARY,
             native_unit_of_measurement="SEK",
             suggested_display_precision=1,
-            icon="mdi:piggy-bank-outline",
             value_fn=lambda d: d[kind].saving,
         ),
         WhichCarSensorDescription(
             key=f"{kind}_breakeven_diesel",
             translation_key=f"{kind}_breakeven_diesel",
             native_unit_of_measurement="SEK/L",
+            state_class=SensorStateClass.MEASUREMENT,
             suggested_display_precision=2,
-            icon="mdi:scale-balance",
             value_fn=lambda d: d[kind].breakeven_diesel,
         ),
     ]
@@ -103,8 +110,8 @@ SENSORS: list[WhichCarSensorDescription] = [
         key="diesel_price",
         translation_key="diesel_price",
         native_unit_of_measurement="SEK/L",
+        state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
-        icon="mdi:gas-station",
         value_fn=lambda d: d["diesel_price"],
         attrs_fn=lambda d: {
             "week_of": d["diesel_week"],
@@ -117,8 +124,8 @@ SENSORS: list[WhichCarSensorDescription] = [
         key="home_electricity_price",
         translation_key="home_electricity_price",
         native_unit_of_measurement="SEK/kWh",
+        state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
-        icon="mdi:home-lightning-bolt-outline",
         value_fn=lambda d: d["home_price"],
         attrs_fn=lambda d: {
             "price_plan": d["price_plan"],
@@ -135,8 +142,8 @@ SENSORS: list[WhichCarSensorDescription] = [
         key="public_charging_price",
         translation_key="public_charging_price",
         native_unit_of_measurement="SEK/kWh",
+        state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=2,
-        icon="mdi:ev-station",
         value_fn=lambda d: d["fast_price"],
         attrs_fn=lambda d: {"source": d["fast_price_source"]},
     ),
@@ -144,9 +151,9 @@ SENSORS: list[WhichCarSensorDescription] = [
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: WhichCarConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    coordinator: WhichCarCoordinator = entry.runtime_data
+    coordinator = entry.runtime_data
     async_add_entities(WhichCarSensor(coordinator, desc) for desc in SENSORS)
 
 

@@ -3,27 +3,30 @@
 from __future__ import annotations
 
 from homeassistant.components.number import NumberMode, RestoreNumber
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import UnitOfLength, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import WhichCarConfigEntry
 from .const import TRIP_DEFAULTS
 from .coordinator import WhichCarCoordinator
 from .entity import device_info
 
-# key: (min, max, step, unit, icon)
+# key: (min, max, step, unit)
 NUMBERS = {
-    "short_km": (1, 150, 1, UnitOfLength.KILOMETERS, "mdi:map-marker-distance"),
-    "long_km": (50, 2000, 10, UnitOfLength.KILOMETERS, "mdi:highway"),
-    "leave_in_h": (0, 24, 1, UnitOfTime.HOURS, "mdi:clock-start"),
+    "short_km": (1, 150, 1, UnitOfLength.KILOMETERS),
+    "long_km": (50, 2000, 10, UnitOfLength.KILOMETERS),
+    "leave_in_h": (0, 24, 1, UnitOfTime.HOURS),
 }
+
+# Values only change from the UI; nothing to throttle.
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: WhichCarConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    coordinator: WhichCarCoordinator = entry.runtime_data
+    coordinator = entry.runtime_data
     async_add_entities(TripNumber(coordinator, key) for key in NUMBERS)
 
 
@@ -34,7 +37,7 @@ class TripNumber(RestoreNumber):
     _attr_mode = NumberMode.BOX
 
     def __init__(self, coordinator: WhichCarCoordinator, key: str) -> None:
-        low, high, step, unit, icon = NUMBERS[key]
+        low, high, step, unit = NUMBERS[key]
         self._coordinator = coordinator
         self._key = key
         self._attr_translation_key = key
@@ -44,7 +47,6 @@ class TripNumber(RestoreNumber):
         self._attr_native_max_value = high
         self._attr_native_step = step
         self._attr_native_unit_of_measurement = unit
-        self._attr_icon = icon
         self._attr_native_value = TRIP_DEFAULTS[key]
 
     async def async_added_to_hass(self) -> None:
