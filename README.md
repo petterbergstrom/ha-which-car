@@ -27,8 +27,8 @@ To change the Nord Pool entry, price area, weather entity or battery sensor late
 For each trip type (short and long):
 
 - **Recommendation**: Take the EX40, Take the Passat, or Either car (when the difference is under 3% or 1 kr). Its attributes hold the detail: energy and fuel used, consumption per 100 km, fast-charging share and the weather effect on each car.
-- **EX40 cost** and **Passat cost** in SEK.
-- **Saving** in SEK.
+- **EX40 cost** and **Passat cost** in SEK, with the cost per km (`per_km`, SEK/km) and the distance as attributes.
+- **Saving** in SEK, also with `per_km`.
 - **Break-even diesel price**: the pump price at which both cars cost the same.
 
 Shared:
@@ -92,10 +92,16 @@ cards:
     name: Long trip
   - type: tile
     entity: sensor.which_car_today_short_trip_saving
-    name: Short trip saving
+    name: Short trip saving (total · per km)
+    state_content:
+      - state
+      - per_km
   - type: tile
     entity: sensor.which_car_today_long_trip_saving
-    name: Long trip saving
+    name: Long trip saving (total · per km)
+    state_content:
+      - state
+      - per_km
   - type: tile
     entity: number.which_car_today_short_trip_distance
     features:

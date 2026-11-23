@@ -100,6 +100,10 @@ async def test_sensors(hass: HomeAssistant, aioclient_mock) -> None:
     d = float(hass.states.get("sensor.which_car_today_long_trip_passat_cost").state)
     assert abs(float(hass.states.get("sensor.which_car_today_long_trip_saving").state) - (d - ev)) < 0.01
     cost = hass.states.get("sensor.which_car_today_long_trip_ex40_cost").attributes
+    assert cost["distance_km"] == 300.0
+    assert cost["per_km"] == round(ev / 300, 2)
+    saving = hass.states.get("sensor.which_car_today_long_trip_saving").attributes
+    assert abs(saving["per_km"] - (d - ev) / 300) < 0.01
     assert cost["device_class"] == "monetary"
     assert "state_class" not in cost
     assert home.attributes["state_class"] == "measurement"
