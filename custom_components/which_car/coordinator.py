@@ -74,6 +74,11 @@ class WhichCarCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self._saved.setdefault("daily_avg", {})
 
     @property
+    def cache(self) -> dict[str, Any]:
+        """Values kept on disk between restarts (daily spot averages, exchange rate, diesel)."""
+        return self._saved
+
+    @property
     def settings(self) -> Settings:
         opts = {**DEFAULTS, **self.config_entry.options}
         return Settings(**{k: opts[k] for k in Settings.__dataclass_fields__})

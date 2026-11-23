@@ -3,6 +3,9 @@
 from datetime import datetime, timedelta
 
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.components.diagnostics import (
+    get_diagnostics_for_config_entry,
+)
 
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
@@ -17,6 +20,9 @@ DATA = {"nordpool_entry": "np1", "area": "SE3", "weather_entity": WEATHER}
 
 
 def fake_sources(hass: HomeAssistant, aioclient_mock, calls: list) -> None:
+    if hass.config_entries.async_get_entry("np1") is None:
+        MockConfigEntry(domain="nordpool", entry_id="np1").add_to_hass(hass)
+
     async def prices(call: ServiceCall):
         calls.append((str(call.data["date"]), call.data["currency"]))
         assert call.data["areas"] == "SE3"
@@ -93,6 +99,10 @@ async def test_sensors(hass: HomeAssistant, aioclient_mock) -> None:
     ev = float(hass.states.get("sensor.which_car_today_long_trip_ex40_cost").state)
     d = float(hass.states.get("sensor.which_car_today_long_trip_passat_cost").state)
     assert abs(float(hass.states.get("sensor.which_car_today_long_trip_saving").state) - (d - ev)) < 0.01
+    cost = hass.states.get("sensor.which_car_today_long_trip_ex40_cost").attributes
+    assert cost["device_class"] == "monetary"
+    assert "state_class" not in cost
+    assert home.attributes["state_class"] == "measurement"
 
     # Changing the distance recalculates.
     await hass.services.async_call(
@@ -123,7 +133,6 @@ async def test_config_flow(hass: HomeAssistant, aioclient_mock) -> None:
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     assert result["type"] is FlowResultType.ABORT and result["reason"] == "nordpool_missing"
 
-    MockConfigEntry(domain="nordpool", entry_id="np1").add_to_hass(hass)
     fake_sources(hass, aioclient_mock, [])
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     assert result["type"] is FlowResultType.FORM
@@ -185,3 +194,37 @@ async def test_fast_price_from_entity(hass: HomeAssistant, aioclient_mock) -> No
     price = hass.states.get("sensor.which_car_today_public_charging_price")
     assert float(price.state) == DEFAULTS["fast_price"]
     assert price.attributes["source"] == "fixed"
+
+
+async def test_reconfigure(hass: HomeAssistant, aioclient_mock) -> None:
+    entry, _ = await setup(hass, aioclient_mock)
+    hass.states.async_set(
+        "weather.other", "sunny", {"temperature": 3.0, "temperature_unit": "°C", "wind_speed": 5.0, "wind_speed_unit": "km/h"}
+    )
+    result = await entry.start_reconfigure_flow(hass)
+    assert result["type"] is FlowResultType.FORM and result["step_id"] == "reconfigure"
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {**DATA, "weather_entity": "weather.other"}
+    )
+    assert result["type"] is FlowResultType.ABORT and result["reason"] == "reconfigure_successful"
+    await hass.async_block_till_done()
+    assert entry.data["weather_entity"] == "weather.other"
+    assert entry.state is ConfigEntryState.LOADED
+
+
+async def test_missing_nordpool_entry(hass: HomeAssistant, aioclient_mock) -> None:
+    fake_sources(hass, aioclient_mock, [])
+    entry = MockConfigEntry(domain=DOMAIN, data={**DATA, "nordpool_entry": "gone"}, options=dict(DEFAULTS))
+    entry.add_to_hass(hass)
+    assert not await hass.config_entries.async_setup(entry.entry_id)
+    assert entry.state is ConfigEntryState.SETUP_ERROR
+    assert "Reconfigure" in entry.reason
+
+
+async def test_diagnostics(hass: HomeAssistant, aioclient_mock, hass_client) -> None:
+    entry, _ = await setup(hass, aioclient_mock)
+    diag = await get_diagnostics_for_config_entry(hass, hass_client, entry)
+    assert diag["data"]["area"] == "SE3"
+    assert diag["nordpool_entry_exists"] is True
+    assert diag["result"]["long"]["recommendation"] == "ex40"
+    assert "daily_avg" in diag["cache"]

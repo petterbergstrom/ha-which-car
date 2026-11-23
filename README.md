@@ -20,6 +20,8 @@ The diesel price needs no setup. The integration fetches the Swedish weekly aver
 4. Pick your Nord Pool entry, price area, Met.no weather entity and, if you have it, the EX40 battery charge level sensor.
 5. Select **Configure** on the integration to review fees and car figures.
 
+To change the Nord Pool entry, price area, weather entity or battery sensor later, choose **Reconfigure** from the integration's ⋮ menu. If the Nord Pool entry it uses is removed, setup stops with a message asking you to do this.
+
 ## Entities
 
 For each trip type (short and long):
@@ -73,23 +75,39 @@ If you have "Rörligt kvartspris" instead, choose one of the quarter-hour option
 
 The consumption figures are typical values. Adjust them to what your own cars show. Costs cover energy only, not wear, tax or parking.
 
-## Example dashboard card
+## Example dashboard section
+
+In a sections view, add a section, open its YAML editor and paste:
 
 ```yaml
-type: entities
-title: Which car today?
-entities:
-  - entity: sensor.which_car_today_short_trip_recommendation
-  - entity: sensor.which_car_today_short_trip_saving
-  - entity: number.which_car_today_short_trip_distance
-  - type: divider
-  - entity: sensor.which_car_today_long_trip_recommendation
-  - entity: sensor.which_car_today_long_trip_saving
-  - entity: number.which_car_today_long_trip_distance
-  - type: divider
-  - entity: number.which_car_today_leaving_in
-  - entity: sensor.which_car_today_home_electricity_price
-  - entity: sensor.which_car_today_diesel_price
+type: grid
+cards:
+  - type: heading
+    heading: Which car today?
+  - type: tile
+    entity: sensor.which_car_today_short_trip_recommendation
+    name: Short trip
+  - type: tile
+    entity: sensor.which_car_today_long_trip_recommendation
+    name: Long trip
+  - type: tile
+    entity: sensor.which_car_today_short_trip_saving
+    name: Short trip saving
+  - type: tile
+    entity: sensor.which_car_today_long_trip_saving
+    name: Long trip saving
+  - type: tile
+    entity: number.which_car_today_short_trip_distance
+    features:
+      - type: numeric-input
+  - type: tile
+    entity: number.which_car_today_long_trip_distance
+    features:
+      - type: numeric-input
+  - type: tile
+    entity: number.which_car_today_leaving_in
+    features:
+      - type: numeric-input
 ```
 
 ## Example morning notification

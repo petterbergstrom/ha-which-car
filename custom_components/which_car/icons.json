@@ -1,0 +1,66 @@
+{
+  "entity": {
+    "sensor": {
+      "short_recommendation": {
+        "default": "mdi:car-select",
+        "state": {
+          "ex40": "mdi:car-electric",
+          "passat": "mdi:gas-station",
+          "either": "mdi:car-multiple"
+        }
+      },
+      "short_ex40_cost": {
+        "default": "mdi:car-electric"
+      },
+      "short_passat_cost": {
+        "default": "mdi:gas-station"
+      },
+      "short_saving": {
+        "default": "mdi:piggy-bank-outline"
+      },
+      "short_breakeven_diesel": {
+        "default": "mdi:scale-balance"
+      },
+      "long_recommendation": {
+        "default": "mdi:car-select",
+        "state": {
+          "ex40": "mdi:car-electric",
+          "passat": "mdi:gas-station",
+          "either": "mdi:car-multiple"
+        }
+      },
+      "long_ex40_cost": {
+        "default": "mdi:car-electric"
+      },
+      "long_passat_cost": {
+        "default": "mdi:gas-station"
+      },
+      "long_saving": {
+        "default": "mdi:piggy-bank-outline"
+      },
+      "long_breakeven_diesel": {
+        "default": "mdi:scale-balance"
+      },
+      "diesel_price": {
+        "default": "mdi:gas-station"
+      },
+      "home_electricity_price": {
+        "default": "mdi:home-lightning-bolt-outline"
+      },
+      "public_charging_price": {
+        "default": "mdi:ev-station"
+      }
+    },
+    "number": {
+      "short_km": {
+        "default": "mdi:map-marker-distance"
+      },
+      "long_km": {
+        "default": "mdi:highway"
+      },
+      "leave_in_h": {
+        "default": "mdi:clock-start"
+      }
+    }
+  }
+}

@@ -23,7 +23,7 @@ All code lives in `custom_components/which_car/`.
 
 - **`model.py`** is the pure cost model with **no Home Assistant imports**: `Weather`, `Slot` (one spot-price period, SEK/kWh excl. fees/VAT), `Settings`, `TripResult`, temperature interpolation tables, and `calc_trip()` / `all_in_price()` / `spot_basis()`. Keep it HA-free so `tests/test_model.py` can exercise it directly.
 - **`coordinator.py`** (`WhichCarCoordinator`, 15-minute `DataUpdateCoordinator`) gathers inputs and calls `calc_trip` for each trip type:
-  - Electricity: calls the `nordpool.get_prices_for_date` service (not an API directly). It needs the built-in Nord Pool integration; the HACS "Nordpool" custom component uses the same `nordpool` domain but has no such action. The Nord Pool config entry ID is stored in `entry.data` and there is no reconfigure flow, so if the user replaces their Nord Pool entry, Which Car Today has to be removed and re-added. Tomorrow's prices are fetched only after 13:00. For the monthly-average price plan it backfills per-day averages for the current month, at most `BACKFILL_PER_UPDATE` days per update.
+  - Electricity: calls the `nordpool.get_prices_for_date` service (not an API directly). It needs the built-in Nord Pool integration; the HACS "Nordpool" custom component uses the same `nordpool` domain but has no such action. The Nord Pool config entry ID is stored in `entry.data`; if that entry is gone, `async_setup_entry` raises `ConfigEntryError` pointing the user to the reconfigure flow (`async_step_reconfigure`), which changes the sources without touching options. Tomorrow's prices are fetched only after 13:00. For the monthly-average price plan it backfills per-day averages for the current month, at most `BACKFILL_PER_UPDATE` days per update.
   - EUR→SEK rate is derived by fetching the same Nord Pool day in both SEK and EUR; falls back to `FALLBACK_EUR_SEK`.
   - Public fast-charging price: a fixed setting, optionally overridden by a user-picked sensor. NOBIL (Sweden's charger register) was evaluated in Nov 2026 and rejected: it has no prices (its static data only lists payment methods, its real-time stream at `api.data.enova.no/nobil/real-time` only charger status) and its data is often out of date. Don't use it as a source.
   - Diesel: HTTP fetch of `DIESEL_URL` (fuel-prices.eu, EUR/L), refreshed every 6 h; last known value is kept on failure.
@@ -32,7 +32,7 @@ All code lives in `custom_components/which_car/`.
   - Output is a plain `dict` keyed by trip kind (`"short"`/`"long"` → `TripResult`) plus shared values; sensors read from it.
 - **`sensor.py`** defines entities declaratively via `WhichCarSensorDescription` (value/attrs callables over the coordinator dict), generated per trip kind.
 - **`number.py`**: trip distance and "leaving in" are `RestoreNumber` entities that write into `coordinator.trip` and request a refresh; they are not config options.
-- **`config_flow.py`**: setup picks the Nord Pool entry, area, weather entity and optional battery sensor (stored in `entry.data`); the options flow holds fees and car figures (stored in `entry.options`). Changing options reloads the entry.
+- **`config_flow.py`**: setup and reconfigure share `SOURCE_SCHEMA` (Nord Pool entry, area, weather entity, optional battery sensor, stored in `entry.data`); the options flow (`OptionsFlowWithReload`) holds fees and car figures (stored in `entry.options`) and reloads the entry on save.
 - **`const.py`** holds config keys and `DEFAULTS`.
 
 ### Invariants to preserve
@@ -40,7 +40,7 @@ All code lives in `custom_components/which_car/`.
 - `coordinator.settings` builds `Settings` by taking `Settings.__dataclass_fields__` from `{**DEFAULTS, **entry.options}`. Every `Settings` field must have a matching key in `DEFAULTS` (and options keys must use the same names). Adding a setting means updating `model.Settings`, `const.DEFAULTS`/`OPT_*`, the options flow schema, `translations/en.json` and the README table.
 - Options that pick an entity (`OPT_FAST_PRICE_ENTITY`) are not `Settings` fields and are not in `DEFAULTS`. The coordinator reads them (`_fast_price`) and passes the effective values to the model with `dataclasses.replace(settings, ...)`, falling back to the fixed setting when the entity has no usable value.
 - `PLAN_*` constants are duplicated in `model.py` and `const.py` (to keep the model HA-free); keep the values identical.
-- Entity names come from `translation_key` → `translations/en.json`; new entities need translation entries.
+- Entity names come from `translation_key` → `translations/en.json`, and icons from the same key in `icons.json`; new entities need entries in both (no `icon=` in code).
 
 ## Tests
 

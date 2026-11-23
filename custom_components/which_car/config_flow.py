@@ -6,7 +6,13 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+    OptionsFlowWithReload,
+)
 from homeassistant.core import callback
 from homeassistant.helpers import selector as sel
 
@@ -70,6 +76,20 @@ ENTITY_FIELDS: dict[str, tuple[str, sel.EntitySelector]] = {
 }
 
 
+SOURCE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_NORDPOOL_ENTRY): sel.ConfigEntrySelector(
+            sel.ConfigEntrySelectorConfig(integration="nordpool")
+        ),
+        vol.Required(CONF_AREA): sel.SelectSelector(
+            sel.SelectSelectorConfig(options=AREAS, mode=sel.SelectSelectorMode.DROPDOWN)
+        ),
+        vol.Required(CONF_WEATHER): sel.EntitySelector(sel.EntitySelectorConfig(domain="weather")),
+        vol.Optional(CONF_BATTERY): sel.EntitySelector(sel.EntitySelectorConfig(domain="sensor")),
+    }
+)
+
+
 class WhichCarConfigFlow(ConfigFlow, domain=DOMAIN):
     """Pick the source integrations."""
 
@@ -85,23 +105,24 @@ class WhichCarConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_create_entry(
                 title="Which car today", data=user_input, options=dict(DEFAULTS)
             )
-        schema = vol.Schema(
-            {
-                vol.Required(CONF_NORDPOOL_ENTRY, default=entries[0].entry_id): sel.ConfigEntrySelector(
-                    sel.ConfigEntrySelectorConfig(integration="nordpool")
-                ),
-                vol.Required(CONF_AREA, default="SE3"): sel.SelectSelector(
-                    sel.SelectSelectorConfig(options=AREAS, mode=sel.SelectSelectorMode.DROPDOWN)
-                ),
-                vol.Required(CONF_WEATHER): sel.EntitySelector(
-                    sel.EntitySelectorConfig(domain="weather")
-                ),
-                vol.Optional(CONF_BATTERY): sel.EntitySelector(
-                    sel.EntitySelectorConfig(domain="sensor")
-                ),
-            }
+        defaults = {CONF_NORDPOOL_ENTRY: entries[0].entry_id, CONF_AREA: "SE3"}
+        return self.async_show_form(
+            step_id="user", data_schema=self.add_suggested_values_to_schema(SOURCE_SCHEMA, defaults)
         )
-        return self.async_show_form(step_id="user", data_schema=schema)
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Change the Nord Pool entry, area, weather entity or battery sensor."""
+        entry = self._get_reconfigure_entry()
+        if not self.hass.config_entries.async_entries("nordpool"):
+            return self.async_abort(reason="nordpool_missing")
+        if user_input is not None:
+            return self.async_update_reload_and_abort(entry, data=user_input)
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=self.add_suggested_values_to_schema(SOURCE_SCHEMA, entry.data),
+        )
 
     @staticmethod
     @callback
@@ -109,7 +130,7 @@ class WhichCarConfigFlow(ConfigFlow, domain=DOMAIN):
         return WhichCarOptionsFlow()
 
 
-class WhichCarOptionsFlow(OptionsFlow):
+class WhichCarOptionsFlow(OptionsFlowWithReload):
     """Fees, charging and car settings."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
